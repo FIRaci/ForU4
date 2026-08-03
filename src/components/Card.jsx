@@ -12,20 +12,66 @@ const MAGIC_ICONS = {
   'infinity-icon': '∞',
 }
 
+const HEART_VARIATIONS = [
+  '❤️', '💖', '💗', '💓', '💞', '💕', '❣️', '💘', '💝', '❤️‍🔥', '❤️‍🩹',
+  '🤍', '💙', '💜', '💛', '🧡', '🤎', '🖤',
+  '💌',
+  '<3', '♡', '♥', '❥', '❣'
+]
+
 export default function Card({
   cardData, dealDelay = 0, deckRef, stageRef,
   shouldExit, onExitComplete, isSpecial, onRevealed,
 }) {
-  const containerRef  = useRef(null)
-  const innerRef      = useRef(null)
-  const frontFaceRef  = useRef(null)
-  const isMounted      = useRef(true)
-  const hasFlippedRef  = useRef(false)
+  const containerRef = useRef(null)
+  const innerRef = useRef(null)
+  const frontFaceRef = useRef(null)
+  const isMounted = useRef(true)
+  const hasFlippedRef = useRef(false)
   const hasReportedRef = useRef(false)
 
   const [phase, setPhase] = useState('init')
   const [magicReady, setMagicReady] = useState(false)
   const [showFromCard, setShowFromCard] = useState(false)
+  const [heartIdx, setHeartIdx] = useState(0)
+
+  useEffect(() => {
+    if (!cardData?.loopingHeart || phase !== 'word') return
+    const inner = innerRef.current
+    if (!inner) return
+
+    let active = true
+
+    const doFlipLoop = () => {
+      if (!active || !isMounted.current) return
+
+      play('flip')
+      gsap.to(inner, {
+        rotationY: 90,
+        duration: 0.16,
+        ease: 'power1.in',
+        onComplete: () => {
+          if (!active) return
+          setHeartIdx(prev => (prev + 1) % HEART_VARIATIONS.length)
+          gsap.to(inner, {
+            rotationY: 180,
+            duration: 0.22,
+            ease: 'back.out(1.5)',
+            onComplete: () => {
+              if (!active) return
+              setTimeout(doFlipLoop, 400)
+            }
+          })
+        }
+      })
+    }
+
+    const initialTimer = setTimeout(doFlipLoop, 500)
+    return () => {
+      active = false
+      clearTimeout(initialTimer)
+    }
+  }, [cardData, phase])
 
   useEffect(() => {
     isMounted.current = true
@@ -85,17 +131,33 @@ export default function Card({
     return () => { clearTimeout(delayTimer); clearTimeout(failsafeTimer) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tap the face-down card → user-triggered flip.
-  const handleFlip = useCallback((e) => {
-    e.stopPropagation()
-    if (phase !== 'facedown' || hasFlippedRef.current) return
-    hasFlippedRef.current = true
+  const isFlippable = phase === 'facedown'
 
-    play('flip')
-    animFlipToFront(innerRef.current, () => {
-      if (isMounted.current) setPhase('word')
-    })
-  }, [phase])
+  const handleFlip = useCallback((e) => {
+    if (e) {
+      e.stopPropagation()
+      if (e.target && e.target.hasPointerCapture && e.pointerId) {
+        e.target.releasePointerCapture(e.pointerId)
+      }
+    }
+    if (phase === 'facedown') {
+      if (hasFlippedRef.current) return
+      hasFlippedRef.current = true
+
+      play('flip')
+      animFlipToFront(innerRef.current, () => {
+        if (isMounted.current) setPhase('word')
+      })
+    } else if (phase === 'word' && cardData?.magic?.type === 'transform') {
+      setPhase('transform_reveal')
+    }
+  }, [phase, cardData])
+
+  const handlePointerEnter = useCallback((e) => {
+    if (e.buttons === 1) { // Left mouse button down or touch drag
+      if (isFlippable) handleFlip(e)
+    }
+  }, [isFlippable, handleFlip])
 
   useEffect(() => {
     if (phase !== 'word') return
@@ -109,13 +171,23 @@ export default function Card({
     const magic = cardData.magic
     if (!magic) { reportRevealed(); return }
 
-    const delay = magic.delay || 2000
-    const t = setTimeout(() => {
-      if (!isMounted.current) return
-      if (magic.type === 'evolve') setPhase('evolve_reveal_from')
-      else if (magic.type === 'transform') setPhase('transform_reveal')
-    }, delay)
-    return () => clearTimeout(t)
+    if (magic.type === 'evolve') {
+      const delay = magic.delay || 2000
+      const t = setTimeout(() => {
+        if (!isMounted.current) return
+        setPhase('evolve_reveal_from')
+      }, delay)
+      return () => clearTimeout(t)
+    }
+
+    if (magic.type === 'transform') {
+      const delay = magic.delay || 2000
+      const t = setTimeout(() => {
+        if (!isMounted.current) return
+        setPhase('transform_reveal')
+      }, delay)
+      return () => clearTimeout(t)
+    }
   }, [phase, cardData, isSpecial, reportRevealed])
 
   useEffect(() => {
@@ -160,27 +232,40 @@ export default function Card({
 
   const magic = cardData.magic
   const icon = magic?.icon ? MAGIC_ICONS[magic.icon] : null
+
   const cardImgSrc = (() => {
     if (showFromCard && magic?.from) return cardImageUrl(magic.from.rank, magic.from.suit)
     if (magicReady && magic?.to) return cardImageUrl(magic.to.rank, magic.to.suit)
-    if (magicReady && magic?.rank) return cardImageUrl(magic.rank, magic.suit)
+    if (magic?.type === 'transform') {
+      if (!magicReady) return cardImageUrl(magic.rank, magic.suit)
+      return null
+    }
     return null
   })()
 
-  const showWord = !magicReady && !showFromCard && phase !== 'hidden'
+  const showWord = (() => {
+    if (phase === 'hidden') return false
+    if (showFromCard) return false
+    if (magic?.type === 'transform') return magicReady
+    return !magicReady
+  })()
+
+  const showCardImgContent = (() => {
+    if (showFromCard) return true
+    if (magic?.type === 'transform') return !magicReady
+    if (magicReady) return true
+    return false
+  })()
+
   const isNumber = /^\d+$/.test(cardData?.text || '')
-  const isFlippable = phase === 'facedown'
 
   return (
     <div
       className={`card-container ${isFlippable ? 'is-flippable' : ''}`}
       ref={containerRef}
-      onClick={isFlippable ? handleFlip : undefined}
-      onTouchEnd={isFlippable ? handleFlip : undefined}
-      // NOTE: no `style={{ opacity }}` here anymore — GSAP fully owns
-      // opacity/x/y/rotation/scale on this element (see effect above).
-      // The starting opacity:0 now comes purely from `.card-container`'s
-      // base CSS (see index.css) so there's no React-vs-GSAP race.
+      onPointerDown={isFlippable ? handleFlip : undefined}
+      onPointerEnter={isFlippable ? handlePointerEnter : undefined}
+      style={{ touchAction: 'none' }} // Prevent scrolling while swiping over cards
     >
       <div className="card-inner" ref={innerRef}>
         <div className="card-face card-back-face" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
@@ -189,14 +274,18 @@ export default function Card({
         <div className="card-face card-front-face" ref={frontFaceRef} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
           <div className={`word-content ${showWord ? 'visible' : 'hidden'}`}>
             <div className="text-face">
-              <span className={`card-word ${isNumber ? 'number' : ''}`}>{cardData?.text || ''}</span>
+              {cardData?.loopingHeart ? (
+                <span className="card-word looping-heart">{HEART_VARIATIONS[heartIdx]}</span>
+              ) : (
+                <span className={`card-word ${isNumber ? 'number' : ''}`}>{cardData?.text || ''}</span>
+              )}
             </div>
           </div>
           {(magic || showFromCard) && (
-            <div className={`card-image-content ${(magicReady || showFromCard) ? 'visible' : 'hidden'}`}>
+            <div className={`card-image-content ${showCardImgContent ? 'visible' : 'hidden'}`}>
               {icon ? <div className="heart-reveal">{icon}</div>
                 : cardImgSrc ? <img src={cardImgSrc} alt="card" className="card-img" onError={e => e.target.style.display = 'none'} />
-                : null}
+                  : null}
             </div>
           )}
         </div>

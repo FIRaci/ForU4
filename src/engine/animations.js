@@ -76,6 +76,18 @@ export const animSplitBurst = (childEls, positions, onComplete) => {
   if(onComplete) setTimeout(onComplete, 450)
 }
 
+export const animChapter3 = (el, onComplete) => {
+  return gsap.to(el, { 
+    scale: 1.2, duration: 0.3, yoyo: true, repeat: 1, ease: 'power1.inOut', onComplete 
+  })
+}
+
+export const animChapter5 = (el, onComplete) => {
+  return gsap.to(el, { 
+    rotation: 360, duration: 1, ease: 'power2.inOut', onComplete 
+  })
+}
+
 export const SPLIT_2_POSITIONS = [
   { x: -140, y: 30, rotation: -14 },
   { x:  140, y: 30, rotation:  14 },
@@ -87,24 +99,32 @@ export const SPLIT_3_POSITIONS = [
   { x:  180, y: 30, rotation:  18 },
 ]
 
+export const SPLIT_4_POSITIONS = [
+  { x: -220, y: 20, rotation: -22 },
+  { x:  -75, y: 45, rotation:  -7 },
+  { x:   75, y: 45, rotation:   7 },
+  { x:  220, y: 20, rotation:  22 },
+]
+
 export const animPackBurst = (packEl, cards, onComplete) => {
   gsap.set(packEl, { opacity: 0 })
   const count = cards.length
-  const spreadDeg = Math.min(60, count * 12)
+  
+  const spreadDeg = count > 1 ? (count - 1) * 16 : 0 // 16 degrees between cards
   const startDeg  = -spreadDeg / 2
 
   cards.forEach((card, i) => {
     const frac  = count > 1 ? i / (count - 1) : 0
     const angle = startDeg + frac * spreadDeg
     const rad   = (angle * Math.PI) / 180
-    const dist  = 220
-    const x = Math.sin(rad) * dist
-    const y = 80 - Math.cos(rad) * 100 + Math.abs(Math.sin(rad)) * 40
+    const radius = 220
+    const x = Math.sin(rad) * radius
+    const y = 140 - Math.cos(rad) * 160
 
-    gsap.set(card, { x: 0, y: 0, rotation: 0, opacity: 0, scale: 0.6 })
+    gsap.set(card, { x: 0, y: 0, rotation: 0, opacity: 0, scale: 0.5 })
     gsap.to(card, {
-      x, y, rotation: angle * 0.5, opacity: 1, scale: 1,
-      duration: 0.5, ease: 'power2.out', delay: i * 0.05
+      x, y, rotation: angle, opacity: 1, scale: 1,
+      duration: 0.5, ease: 'back.out(1.2)', delay: i * 0.05
     })
   })
   if(onComplete) setTimeout(onComplete, 500 + count * 50)
@@ -122,5 +142,19 @@ export const animMagnet = (card1El, card2El, heartEl, onComplete) => {
     .to([card1El, card2El], { x: 0, opacity: 0, scale: 0.5, duration: 0.1 })
     .to(heartEl, { opacity: 1, scale: 1.2, duration: 0.2, ease: 'power2.out' })
     .to(heartEl, { scale: 1, duration: 0.2, ease: 'power2.inOut' })
+}
+
+export const animMetamorphosis = (card1El, card2El, resultCardEl, onComplete) => {
+  gsap.set(card1El, { x: -180, y: 0, opacity: 0 })
+  gsap.set(card2El, { x:  180, y: 0, opacity: 0 })
+  gsap.set(resultCardEl, { opacity: 0, scale: 0 })
+
+  const tl = gsap.timeline({ onComplete })
+  tl.to([card1El, card2El], { opacity: 1, duration: 0.2, ease: 'none' })
+    .to(card1El, { x: -20, duration: 0.4, ease: 'power2.in' }, 'slide')
+    .to(card2El, { x:  20, duration: 0.4, ease: 'power2.in' }, 'slide')
+    .to([card1El, card2El], { x: 0, opacity: 0, scale: 0.5, duration: 0.1 })
+    .to(resultCardEl, { opacity: 1, scale: 1.2, duration: 0.2, ease: 'power2.out' })
+    .to(resultCardEl, { scale: 1, duration: 0.2, ease: 'power2.inOut' })
 }
 

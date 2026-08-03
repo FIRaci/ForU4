@@ -7,10 +7,10 @@
         "text": "Are"
       },
       {
-        "text": "you"
+        "text": "You"
       },
       {
-        "text": "ready?"
+        "text": "Ready?"
       }
     ]
   },
@@ -19,13 +19,817 @@
     "type": "scene",
     "cards": [
       {
+        "text": "The"
+      },
+      {
+        "text": "Day"
+      },
+      {
+        "text": "I"
+      },
+      {
+        "text": "Know"
+      },
+      {
+        "text": "You"
+      }
+    ]
+  },
+  {
+    "id": "scene_2",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Everything"
+      },
+      {
+        "text": "Changed"
+      }
+    ]
+  },
+  {
+    "id": "scene_3",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Spark",
+        "magic": {
+          "type": "transform",
+          "rank": "A",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Realization",
+        "magic": {
+          "type": "transform",
+          "rank": "A",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Beginning",
+        "magic": {
+          "type": "transform",
+          "rank": "A",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      }
+    ],
+    "header": "Chapter 1: The Spark"
+  },
+  {
+    "id": "scene_4",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "I"
+      },
+      {
+        "text": "Fell"
+      },
+      {
+        "text": "For"
+      },
+      {
+        "text": "Your..."
+      }
+    ]
+  },
+  {
+    "id": "scene_5",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Eyes",
+        "magic": {
+          "type": "transform",
+          "rank": "2",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Voice",
+        "magic": {
+          "type": "transform",
+          "rank": "3",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Smile",
+        "magic": {
+          "type": "transform",
+          "rank": "4",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      }
+    ],
+    "header": "Chapter 2: The Details",
+    "footerText": "I fell for your..."
+  },
+  {
+    "id": "scene_6",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Kindness",
+        "magic": {
+          "type": "transform",
+          "rank": "5",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Quirks",
+        "magic": {
+          "type": "transform",
+          "rank": "6",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Mind",
+        "magic": {
+          "type": "transform",
+          "rank": "7",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Energy",
+        "magic": {
+          "type": "transform",
+          "rank": "8",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Grace",
+        "magic": {
+          "type": "transform",
+          "rank": "9",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Perfection",
+        "magic": {
+          "type": "transform",
+          "rank": "10",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Playful",
+        "magic": {
+          "type": "transform",
+          "rank": "J",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "And all the little details..."
+  },
+  {
+    "id": "scene_7",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Because"
+      },
+      {
         "text": "You"
       },
       {
-        "text": "are"
+        "text": "Are"
       },
       {
-        "text": "my"
+        "text": "My"
+      }
+    ]
+  },
+  {
+    "id": "scene_8",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "My Goddess",
+        "magic": {
+          "type": "transform",
+          "rank": "Q",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "My Treasure",
+        "magic": {
+          "type": "transform",
+          "rank": "K",
+          "suit": "diamonds",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "Because you are my..."
+  },
+  {
+    "id": "scene_9",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "With"
+      },
+      {
+        "text": "You"
+      }
+    ]
+  },
+  {
+    "id": "scene_10",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Every"
+      },
+      {
+        "text": "Second",
+        "magic": {
+          "type": "transform",
+          "rank": "2",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Every"
+      },
+      {
+        "text": "Minute",
+        "magic": {
+          "type": "transform",
+          "rank": "3",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Every"
+      },
+      {
+        "text": "Hour",
+        "magic": {
+          "type": "transform",
+          "rank": "4",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "With you..."
+  },
+  {
+    "id": "scene_11",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Passes"
+      },
+      {
+        "text": "By"
+      }
+    ]
+  },
+  {
+    "id": "scene_12",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Days",
+        "magic": {
+          "type": "transform",
+          "rank": "5",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Weeks",
+        "magic": {
+          "type": "transform",
+          "rank": "6",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Months",
+        "magic": {
+          "type": "transform",
+          "rank": "7",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Seasons",
+        "magic": {
+          "type": "transform",
+          "rank": "8",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      }
+    ],
+    "header": "Chapter 4: The Time",
+    "footerText": "Counting days, weeks, months, and seasons..."
+  },
+  {
+    "id": "scene_13",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Through"
+      },
+      {
+        "text": "Years",
+        "magic": {
+          "type": "transform",
+          "rank": "9",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "And"
+      },
+      {
+        "text": "Decades",
+        "magic": {
+          "type": "transform",
+          "rank": "10",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "Through the years and decades..."
+  },
+  {
+    "id": "scene_14",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Past",
+        "magic": {
+          "type": "transform",
+          "rank": "J",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Present",
+        "magic": {
+          "type": "transform",
+          "rank": "Q",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Future",
+        "magic": {
+          "type": "transform",
+          "rank": "K",
+          "suit": "clubs",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "In past, present, and future..."
+  },
+  {
+    "id": "scene_15",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "No"
+      },
+      {
+        "text": "Matter"
+      },
+      {
+        "text": "The"
+      }
+    ]
+  },
+  {
+    "id": "scene_16",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Distance",
+        "magic": {
+          "type": "transform",
+          "rank": "2",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Or"
+      },
+      {
+        "text": "Doubts",
+        "magic": {
+          "type": "transform",
+          "rank": "3",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "We"
+      },
+      {
+        "text": "Survive"
+      },
+      {
+        "text": "The"
+      },
+      {
+        "text": "Waiting",
+        "magic": {
+          "type": "transform",
+          "rank": "4",
+          "suit": "spades",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "No matter the..."
+  },
+  {
+    "id": "scene_17",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Through"
+      },
+      {
+        "text": "Changes",
+        "magic": {
+          "type": "transform",
+          "rank": "5",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "And"
+      },
+      {
+        "text": "Silence",
+        "magic": {
+          "type": "transform",
+          "rank": "6",
+          "suit": "spades",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_18",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "I"
+      },
+      {
+        "text": "Take"
+      },
+      {
+        "text": "A"
+      },
+      {
+        "text": "Leap",
+        "magic": {
+          "type": "transform",
+          "rank": "7",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Keep"
+      },
+      {
+        "text": "Growing",
+        "magic": {
+          "type": "transform",
+          "rank": "8",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "With"
+      },
+      {
+        "text": "Courage",
+        "magic": {
+          "type": "transform",
+          "rank": "9",
+          "suit": "spades",
+          "delay": 2000
+        }
+      }
+    ],
+    "footerText": "I take a leap to keep growing..."
+  },
+  {
+    "id": "scene_19",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "To"
+      },
+      {
+        "text": "Build"
+      },
+      {
+        "text": "An"
+      },
+      {
+        "text": "Unbreakable",
+        "magic": {
+          "type": "transform",
+          "rank": "10",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Bond"
+      }
+    ]
+  },
+  {
+    "id": "scene_20",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "You"
+      },
+      {
+        "text": "Are"
+      },
+      {
+        "text": "My"
+      },
+      {
+        "text": "Sanctuary",
+        "magic": {
+          "type": "transform",
+          "rank": "Q",
+          "suit": "spades",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_21",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "And"
+      },
+      {
+        "text": "I"
+      },
+      {
+        "text": "Will"
+      },
+      {
+        "text": "Be"
+      },
+      {
+        "text": "Your"
+      },
+      {
+        "text": "Sword",
+        "magic": {
+          "type": "transform",
+          "rank": "K",
+          "suit": "spades",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_22",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Just A Boy",
+        "magic": {
+          "type": "transform",
+          "rank": "J",
+          "suit": "spades",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Who Admired You",
+        "magic": {
+          "type": "transform",
+          "rank": "J",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "Dreaming To Become Your King ♥",
+        "magic": {
+          "type": "transform",
+          "rank": "K",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_23",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "You"
+      },
+      {
+        "text": "Give"
+      },
+      {
+        "text": "Me"
+      },
+      {
+        "text": "Joy",
+        "magic": {
+          "type": "transform",
+          "rank": "3",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "And"
+      },
+      {
+        "text": "Inner"
+      },
+      {
+        "text": "Peace",
+        "magic": {
+          "type": "transform",
+          "rank": "4",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_24",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "Even"
+      },
+      {
+        "text": "When"
+      },
+      {
+        "text": "I"
+      },
+      {
+        "text": "Miss",
+        "magic": {
+          "type": "transform",
+          "rank": "5",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "You"
+      },
+      {
+        "text": "I"
+      },
+      {
+        "text": "Still"
+      },
+      {
+        "text": "Care",
+        "magic": {
+          "type": "transform",
+          "rank": "6",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_25",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "You"
+      },
+      {
+        "text": "Are"
+      },
+      {
+        "text": "My"
+      },
+      {
+        "text": "Dream",
+        "magic": {
+          "type": "transform",
+          "rank": "7",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "My"
+      },
+      {
+        "text": "Wish",
+        "magic": {
+          "type": "transform",
+          "rank": "8",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "My"
+      },
+      {
+        "text": "Affection",
+        "magic": {
+          "type": "transform",
+          "rank": "9",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      },
+      {
+        "text": "My"
+      },
+      {
+        "text": "Happiness",
+        "magic": {
+          "type": "transform",
+          "rank": "10",
+          "suit": "hearts",
+          "delay": 2000
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_26",
+    "type": "scene",
+    "cards": [
+      {
+        "text": "You"
+      },
+      {
+        "text": "Are"
+      },
+      {
+        "text": "My"
       },
       {
         "text": "Queen",
@@ -39,392 +843,33 @@
     ]
   },
   {
-    "id": "scene_2",
+    "id": "scene_27",
     "type": "scene",
     "cards": [
       {
-        "text": "You"
-      },
-      {
-        "text": "are"
-      },
-      {
-        "text": "the"
-      },
-      {
-        "text": "most"
-      },
-      {
-        "text": "beautiful"
-      },
-      {
-        "text": "One",
-        "magic": {
-          "type": "transform",
-          "rank": "A",
-          "suit": "diamonds",
-          "delay": 2000
-        }
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "know"
-      }
-    ]
-  },
-  {
-    "id": "scene_3",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "I"
-      },
-      {
-        "text": "am"
-      },
-      {
-        "text": "now"
-      },
-      {
-        "text": "a"
-      },
-      {
-        "text": "Jack",
-        "magic": {
-          "type": "transform",
-          "rank": "J",
-          "suit": "clubs",
-          "delay": 2000
-        }
-      }
-    ]
-  },
-  {
-    "id": "scene_4",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "but"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "want"
-      },
-      {
-        "text": "to"
-      },
-      {
-        "text": "be"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "King",
-        "magic": {
-          "type": "transform",
-          "rank": "K",
-          "suit": "hearts",
-          "delay": 2000
-        }
-      }
-    ]
-  },
-  {
-    "id": "scene_5",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "For"
-      },
-      {
-        "text": "2",
+        "text": "Us Together",
         "magic": {
           "type": "transform",
           "rank": "2",
           "suit": "hearts",
-          "delay": 1500
-        }
-      },
-      {
-        "text": "4",
-        "magic": {
-          "type": "transform",
-          "rank": "4",
-          "suit": "diamonds",
-          "delay": 1500
-        }
-      },
-      {
-        "text": "hours,"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "only"
-      },
-      {
-        "text": "want"
-      },
-      {
-        "text": "to"
-      },
-      {
-        "text": "see"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "eyes."
-      }
-    ]
-  },
-  {
-    "id": "scene_6",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "Through"
-      },
-      {
-        "text": "every"
-      },
-      {
-        "text": "day"
-      },
-      {
-        "text": "of"
-      },
-      {
-        "text": "the"
-      },
-      {
-        "text": "week,"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "wait"
-      },
-      {
-        "text": "for"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "message."
-      }
-    ]
-  },
-  {
-    "id": "scene_7",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "Through"
-      },
-      {
-        "text": "all"
-      },
-      {
-        "text": "four"
-      },
-      {
-        "text": "seasons,"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "only"
-      },
-      {
-        "text": "want"
-      },
-      {
-        "text": "to"
-      },
-      {
-        "text": "hear"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "angel"
-      },
-      {
-        "text": "voice."
-      }
-    ]
-  },
-  {
-    "id": "scene_8",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "For"
-      },
-      {
-        "text": "every"
-      },
-      {
-        "text": "month"
-      },
-      {
-        "text": "of"
-      },
-      {
-        "text": "the"
-      },
-      {
-        "text": "year,"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "hope"
-      },
-      {
-        "text": "you're"
-      },
-      {
-        "text": "happy"
-      },
-      {
-        "text": "and"
-      },
-      {
-        "text": "healthy."
-      }
-    ]
-  },
-  {
-    "id": "scene_9",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "For"
-      },
-      {
-        "text": "3",
-        "magic": {
-          "type": "transform",
-          "rank": "3",
-          "suit": "clubs",
-          "delay": 1500
-        }
-      },
-      {
-        "text": "6",
-        "magic": {
-          "type": "transform",
-          "rank": "6",
-          "suit": "spades",
-          "delay": 1500
-        }
-      },
-      {
-        "text": "5",
-        "magic": {
-          "type": "transform",
-          "rank": "5",
-          "suit": "hearts",
-          "delay": 1500
-        }
-      },
-      {
-        "text": "days,"
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "want"
-      },
-      {
-        "text": "to"
-      },
-      {
-        "text": "see"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "lips"
-      },
-      {
-        "text": "bloom"
-      },
-      {
-        "text": "with"
-      },
-      {
-        "text": "your"
-      },
-      {
-        "text": "smile."
-      }
-    ]
-  },
-  {
-    "id": "scene_10",
-    "type": "scene",
-    "cards": [
-      {
-        "text": "And"
-      },
-      {
-        "text": "after"
-      },
-      {
-        "text": "knowing"
-      },
-      {
-        "text": "you..."
-      },
-      {
-        "text": "I"
-      },
-      {
-        "text": "stopped"
-      },
-      {
-        "text": "counting"
-      },
-      {
-        "text": "∞",
-        "magic": {
-          "type": "transform",
-          "icon": "infinity-icon",
-          "delay": 2500
+          "delay": 2000
         }
       }
     ]
   },
   {
-    "id": "scene_11",
+    "id": "scene_28",
     "type": "scene",
     "cards": [
       {
         "text": "Only"
       },
       {
-        "text": "One",
+        "text": "You",
         "magic": {
           "type": "transform",
           "rank": "A",
-          "suit": "diamonds",
+          "suit": "hearts",
           "delay": 2000
         }
       },
@@ -435,27 +880,25 @@
         "text": "My"
       },
       {
-        "text": "Heart",
-        "magic": {
-          "type": "transform",
-          "rank": "A",
-          "suit": "hearts",
-          "delay": 2500
-        }
+        "text": "Heart"
       }
     ]
   },
   {
-    "id": "scene_12",
-    "type": "magnet",
+    "id": "scene_29",
+    "type": "scene",
     "cards": [
       {
-        "text": "You"
+        "text": "Me"
       },
       {
-        "text": "Me"
+        "text": "Heart",
+        "loopingHeart": true
+      },
+      {
+        "text": "You"
       }
     ],
-    "result": "❤️"
+    "footerText": "Me + You = Forever ♥"
   }
 ]

@@ -5,6 +5,6 @@ import react from '@vitejs/plugin-react'
 // e.g., if your repo is github.com/yourname/my-love-cards → base: '/my-love-cards/'
 export default defineConfig({
   plugins: [react()],
-  base: '/52-cards/',
+  base: '/ForU4/',
   publicDir: 'playing-cards-assets',
 })

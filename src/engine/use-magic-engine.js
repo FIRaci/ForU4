@@ -1,9 +1,23 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 
 function countCardsInScene(scene) {
-  if (scene.cards) return scene.cards.length
-  if (scene.card) return 1
-  return 0
+  let count = 0
+  if (scene.cards) {
+    scene.cards.forEach(c => {
+      if (c.magic?.rank || c.magic?.to?.rank || (c.rank && c.rank !== 'blank')) count++
+    })
+  }
+  if (scene.into) {
+    scene.into.forEach(c => {
+      if (c.rank && c.rank !== 'blank') count++
+    })
+  }
+  if (scene.burst) {
+    scene.burst.forEach(c => {
+      if (c.rank && c.rank !== 'blank') count++
+    })
+  }
+  return count
 }
 
 export function useMagicEngine(script) {
