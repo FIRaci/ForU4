@@ -1,0 +1,1483 @@
+======================================================
+File: src/main.jsx
+======================================================
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
+
+======================================================
+File: src/App.jsx
+======================================================
+/**
+ * App.jsx
+ * Root component. Shows IntroScreen until user taps,
+ * then transitions to MagicTable.
+ */
+
+import { useState } from 'react'
+import IntroScreen from './components/IntroScreen.jsx'
+import MagicTable  from './components/MagicTable.jsx'
+import { initAudio } from './engine/sound-manager.js'
+
+export default function App() {
+  const [started, setStarted] = useState(false)
+
+  const handleStart = async () => {
+    try {
+      await initAudio()
+    } catch (e) {
+      // Audio not available — continue anyway
+      console.warn('Audio init failed:', e)
+    }
+    setStarted(true)
+  }
+
+  return (
+    <div className="app">
+      {started ? (
+        <MagicTable />
+      ) : (
+        <IntroScreen onStart={handleStart} />
+      )}
+    </div>
+  )
+}
+
+======================================================
+File: src/index.css
+======================================================
+/* ================================================================
+   52 CARDS — BASIC DESIGN SYSTEM (SCENE-BASED)
+   Palette: Clean white/gray minimal UI.
+================================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:           #0f172a;
+  --table-bg:     #020617;
+  --card-bg:      #ffffff;
+  --card-border:  #1e293b;
+  --card-shadow:  rgba(0, 0, 0, 0.5);
+  --text-primary: #f8fafc;
+  --text-card:    #0f172a;
+  --text-muted:   #94a3b8;
+  --text-faint:   #475569;
+  --red-suit:     #e11d48;
+  --black-suit:   #0f172a;
+
+  /* Card Dimensions */
+  --card-w: clamp(110px, 22vw, 200px);
+  --card-h: calc(var(--card-w) * 1.455);
+  --card-r: clamp(6px, 1vw, 12px);
+  --font-ui:   -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+body {
+  background: var(--bg); color: var(--text-primary); font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased; user-select: none;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.app { width: 100%; height: 100dvh; position: relative; }
+
+/* ── INTRO SCREEN ── */
+.intro-screen {
+  position: fixed; inset: 0; z-index: 200; background: var(--bg);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 24px; cursor: pointer;
+}
+.intro-suits { font-size: clamp(20px, 4vw, 32px); letter-spacing: 0.5em; padding-left: 0.5em; color: var(--text-muted); }
+.intro-suits span.red { color: var(--red-suit); }
+.intro-title { font-size: clamp(32px, 8vw, 64px); font-weight: 200; letter-spacing: 0.02em; }
+.intro-hint { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; }
+
+/* ── MAGIC TABLE ── */
+.magic-table { position: relative; width: 100%; height: 100dvh; background: var(--table-bg); overflow: hidden; }
+
+.card-stage {
+  position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10;
+}
+
+/* ── CARDS LAYOUT (for multiple cards in a scene) ── */
+.cards-layout {
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  width: 90%;
+  max-width: 800px;
+}
+.exiting-layout { pointer-events: none; }
+
+/* ── DECK PILE ── */
+.deck-pile { position: absolute; top: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.deck-visual { position: relative; width: 46px; height: 66px; }
+.deck-card { position: absolute; border-radius: 4px; background: var(--card-bg); border: 1px solid var(--card-border); box-shadow: 0 2px 4px var(--card-shadow); }
+.deck-card:nth-child(1) { width: 42px; height: 60px; bottom: 6px; right: 4px; transform: rotate(3deg); opacity: 0.5; }
+.deck-card:nth-child(2) { width: 44px; height: 62px; bottom: 3px; right: 2px; transform: rotate(1deg); opacity: 0.8; }
+.deck-card:nth-child(3) { width: 46px; height: 66px; bottom: 0; right: 0; }
+.deck-count { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+
+/* ── BEAT COUNTER ── */
+.beat-counter { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 50; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.beat-counter em { font-style: normal; color: var(--text-primary); font-weight: 600; }
+
+/* ── CARD COMPONENT ── */
+.card-container {
+  position: relative;
+  width: var(--card-w); height: var(--card-h); perspective: 1200px;
+  opacity: 0;
+}
+.card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+.card-face {
+  position: absolute; inset: 0; border-radius: var(--card-r); backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--card-bg); border: 1px solid var(--card-border); box-shadow: 0 4px 12px var(--card-shadow); overflow: hidden;
+}
+.card-back-face { background: #fff; }
+.card-back-face img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--card-r); }
+.card-front-face { transform: rotateY(180deg); }
+
+.word-content, .card-image-content { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; transition: opacity 0.3s ease; }
+.word-content.visible { opacity: 1; pointer-events: auto; }
+.word-content.hidden  { opacity: 0; pointer-events: none; }
+.card-image-content.visible { opacity: 1; }
+.card-image-content.hidden  { opacity: 0; }
+.card-img { width: 100%; height: 100%; object-fit: contain; border-radius: var(--card-r); }
+.heart-reveal { font-size: clamp(40px, 8vw, 60px); }
+
+/* ── TEXT FACE ── */
+.text-face { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+.card-word { font-size: clamp(16px, 3.5vw, 32px); font-weight: 600; color: var(--text-card); text-align: center; padding: 0 8px; word-break: break-word; }
+.card-word.number { font-size: clamp(32px, 7vw, 56px); font-weight: 800; }
+.card-glow { box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 8px 32px rgba(255,255,255,0.2); border-color: #fff; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+
+/* ── OVERLAYS (SPLIT / PACK / MAGNET) ── */
+.scene-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 15; pointer-events: none; }
+.split-cards-container, .pack-cards-container, .magnet-container { position: relative; display: flex; justify-content: center; align-items: center; }
+.split-card-wrap, .pack-card-wrap { position: absolute; }
+.split-card-wrap { width: var(--card-w); height: var(--card-h); }
+.pack-card-wrap { width: calc(var(--card-w) * 0.75); height: calc(var(--card-h) * 0.75); }
+.pack-card-inner { width: 100%; height: 100%; background: var(--card-bg); color: var(--text-card); border-radius: clamp(4px, 1vw, 8px); border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px var(--card-shadow); }
+.pack-card-rank { font-size: clamp(14px, 3vw, 24px); font-weight: 800; }
+.pack-card-suit { font-size: clamp(16px, 3.5vw, 28px); }
+.pack-card-label { font-size: clamp(10px, 1.5vw, 14px); color: var(--text-faint); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+.pack-card-red { color: var(--red-suit); }
+.pack-card-black { color: var(--black-suit); }
+
+.scene-footer { margin-top: 280px; font-size: 18px; font-weight: 500; text-align: center; color: var(--text-primary); opacity: 0; transition: opacity 0.5s ease; text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 0.05em; }
+.scene-footer.visible { opacity: 1; }
+
+.magnet-mini-card { position: absolute; width: calc(var(--card-w) * 0.8); height: calc(var(--card-h) * 0.8); background: var(--card-bg); color: var(--text-card); border: 1px solid var(--card-border); border-radius: var(--card-r); display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 24px var(--card-shadow); }
+.magnet-mini-word { font-size: 24px; font-weight: 600; }
+.magnet-heart-result { font-size: 80px; filter: drop-shadow(0 4px 12px rgba(225,29,72,0.4)); }
+
+/* ── NAV ── */
+.nav-area { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; z-index: 30; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+.nav-btn { width: 48px; height: 48px; border: none; background: transparent; color: var(--text-faint); font-size: 24px; cursor: pointer; border-radius: 50%; transition: color 0.2s; }
+.nav-btn:hover:not(:disabled) { color: var(--text-primary); }
+.nav-btn:disabled { opacity: 0.2; cursor: default; }
+.tap-hint { font-size: 11px; color: var(--text-faint); letter-spacing: 0.2em; text-transform: uppercase; }
+.done-message { position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); font-size: 14px; color: var(--text-primary); opacity: 0.6; }
+
+/* ===== ADD-ON: prominent, unmistakable Next button (right side) ===== */
+.nav-btn-next {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: none;
+  font-size: 30px;
+  font-weight: 700;
+  transition: background .25s ease, box-shadow .25s ease, opacity .25s ease;
+}
+.nav-btn-next.is-ready {
+  background: linear-gradient(135deg, #ff6b9d, #c93b6f);
+  color: #fff;
+  box-shadow: 0 0 24px rgba(255, 107, 157, 0.65);
+  cursor: pointer;
+  opacity: 1;
+  animation: nextPulse 1.4s ease-in-out infinite;
+}
+.nav-btn-next.is-locked {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@keyframes nextPulse {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50%      { transform: translateY(-50%) scale(1.08); }
+}
+
+/* Back button: small, out of the way, bottom-left */
+.nav-btn-back {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  z-index: 40;
+}
+
+@media (max-width: 480px) {
+  .nav-btn-next { width: 58px; height: 58px; font-size: 26px; right: 14px; }
+}
+
+.card-container.is-flippable { cursor: pointer; }
+.card-container.is-flippable .card-back-face {
+  animation: facedownPulse 1.6s ease-in-out infinite;
+}
+@keyframes facedownPulse {
+  0%, 100% { box-shadow: 0 4px 12px var(--card-shadow); }
+  50%      { box-shadow: 0 4px 20px rgba(255,255,255,0.35); }
+}
+.tap-hint-facedown {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  z-index: 30;
+  opacity: 0.7;
+}
+
+/* ── FOOTER WORD-CARDS (mỗi từ 1 card nhỏ, xếp dòng có ý nghĩa) ── */
+.footer-cards-lines {
+  margin-top: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 92vw;
+  padding: 0 12px;
+}
+.footer-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.footer-word-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  color: var(--text-card);
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  font-size: clamp(12px, 2.4vw, 16px);
+  font-weight: 600;
+  box-shadow: 0 4px 12px var(--card-shadow);
+  white-space: nowrap;
+}
+
+======================================================
+File: src/data/script.json
+======================================================
+[
+  {
+    "id": "scene_0",
+    "type": "scene",
+    "cards": [
+      { "text": "Are" },
+      { "text": "you" },
+      { "text": "ready?" }
+    ]
+  },
+  {
+    "id": "scene_1",
+    "type": "scene",
+    "cards": [
+      { "text": "You" },
+      { "text": "are" },
+      { "text": "my" },
+      {
+        "text": "Queen",
+        "magic": { "type": "transform", "rank": "Q", "suit": "hearts", "delay": 2000 }
+      }
+    ]
+  },
+  {
+    "id": "scene_2",
+    "type": "scene",
+    "cards": [
+      { "text": "You" },
+      { "text": "are" },
+      { "text": "the" },
+      { "text": "most" },
+      { "text": "beautiful" },
+      {
+        "text": "One",
+        "magic": { "type": "transform", "rank": "A", "suit": "diamonds", "delay": 2000 }
+      },
+      { "text": "I" },
+      { "text": "know" }
+    ]
+  },
+  {
+    "id": "scene_3",
+    "type": "scene",
+    "cards": [
+      { "text": "I" },
+      { "text": "am" },
+      { "text": "now" },
+      { "text": "a" },
+      {
+        "text": "Jack",
+        "magic": {
+          "type": "evolve",
+          "from": { "rank": "J", "suit": "clubs" },
+          "to": { "rank": "K", "suit": "hearts" },
+          "delay": 1500
+        }
+      }
+    ]
+  },
+  {
+    "id": "scene_4",
+    "type": "scene",
+    "cards": [
+      { "text": "but" },
+      { "text": "I" },
+      { "text": "want" },
+      { "text": "to" },
+      { "text": "be" },
+      { "text": "your" },
+      { "text": "King" }
+    ]
+  },
+  {
+    "id": "scene_5",
+    "type": "split",
+    "card": { "text": "24" },
+    "into": [
+      { "rank": "2", "suit": "hearts" },
+      { "rank": "4", "suit": "diamonds" }
+    ],
+    "footer": [
+      ["For", "24", "hours"],
+      ["I", "only", "want", "to", "see", "your", "eyes."]
+    ]
+  },
+  {
+    "id": "scene_6",
+    "type": "pack",
+    "card": { "text": "Week" },
+    "burst": [
+      { "rank": "2", "suit": "diamonds", "label": "Monday" },
+      { "rank": "3", "suit": "clubs",    "label": "Tuesday" },
+      { "rank": "4", "suit": "hearts",   "label": "Wednesday" },
+      { "rank": "5", "suit": "spades",   "label": "Thursday" },
+      { "rank": "6", "suit": "diamonds", "label": "Friday" },
+      { "rank": "7", "suit": "hearts",   "label": "Saturday" },
+      { "rank": "A", "suit": "clubs",    "label": "Sunday" }
+    ],
+    "footer": [
+      ["Through", "every", "day", "of", "the", "week"],
+      ["I", "wait", "for", "your", "message."]
+    ]
+  },
+  {
+    "id": "scene_7",
+    "type": "pack",
+    "card": { "text": "Season" },
+    "burst": [
+      { "rank": "A", "suit": "hearts", "label": "Spring" },
+      { "rank": "2", "suit": "hearts", "label": "Summer" },
+      { "rank": "3", "suit": "hearts", "label": "Autumn" },
+      { "rank": "4", "suit": "hearts", "label": "Winter" }
+    ],
+    "footer": [
+      ["Through", "all", "four", "seasons"],
+      ["I", "only", "want", "to", "hear", "your", "angel", "voice."]
+    ]
+  },
+  {
+    "id": "scene_8",
+    "type": "pack",
+    "card": { "text": "Month" },
+    "burst": [
+      { "rank": "A",  "suit": "spades", "label": "Jan" },
+      { "rank": "2",  "suit": "spades", "label": "Feb" },
+      { "rank": "3",  "suit": "spades", "label": "Mar" },
+      { "rank": "4",  "suit": "spades", "label": "Apr" },
+      { "rank": "5",  "suit": "spades", "label": "May" },
+      { "rank": "6",  "suit": "spades", "label": "Jun" },
+      { "rank": "7",  "suit": "spades", "label": "Jul" },
+      { "rank": "8",  "suit": "spades", "label": "Aug" },
+      { "rank": "9",  "suit": "spades", "label": "Sep" },
+      { "rank": "10", "suit": "spades", "label": "Oct" },
+      { "rank": "J",  "suit": "spades", "label": "Nov" },
+      { "rank": "Q",  "suit": "spades", "label": "Dec" }
+    ],
+    "footer": [
+      ["For", "every", "month", "of", "the", "year"],
+      ["I", "hope", "you're", "happy", "and", "healthy."]
+    ]
+  },
+  {
+    "id": "scene_9",
+    "type": "split",
+    "card": { "text": "365" },
+    "into": [
+      { "rank": "3", "suit": "clubs" },
+      { "rank": "6", "suit": "spades" },
+      { "rank": "5", "suit": "hearts" }
+    ],
+    "footer": [
+      ["For", "365", "days"],
+      ["I", "want", "to", "see", "your", "lips", "bloom", "with", "your", "Seraphic", "smile."]
+    ]
+  },
+  {
+    "id": "scene_10",
+    "type": "scene",
+    "cards": [
+      { "text": "And" },
+      { "text": "after" },
+      { "text": "knowing" },
+      { "text": "you..." },
+      { "text": "I" },
+      { "text": "stopped" },
+      { "text": "counting" },
+      {
+        "text": "∞",
+        "magic": { "type": "transform", "icon": "infinity-icon", "delay": 2500 }
+      }
+    ]
+  },
+  {
+    "id": "scene_11",
+    "type": "scene",
+    "cards": [
+      { "text": "Only" },
+      {
+        "text": "One",
+        "magic": { "type": "transform", "rank": "A", "suit": "diamonds", "delay": 2000 }
+      },
+      { "text": "In" },
+      { "text": "My" },
+      {
+        "text": "Heart",
+        "magic": { "type": "transform", "rank": "A", "suit": "hearts", "delay": 2500 }
+      }
+    ]
+  },
+  {
+    "id": "scene_12",
+    "type": "magnet",
+    "cards": [
+      { "text": "You" },
+      { "text": "Me" }
+    ],
+    "result": "❤️"
+  }
+]
+
+======================================================
+File: src/engine/use-magic-engine.js
+======================================================
+import { useState, useCallback, useRef, useMemo } from 'react'
+
+function countCardsInScene(scene) {
+  if (scene.cards) return scene.cards.length
+  if (scene.card) return 1
+  return 0
+}
+
+export function useMagicEngine(script) {
+  const total = script.length
+  const totalCards = useMemo(
+    () => script.reduce((sum, s) => sum + countCardsInScene(s), 0),
+    [script]
+  )
+
+  const [sceneIdx,   setSceneIdx]   = useState(-1)
+  const [deckCount,  setDeckCount]  = useState(totalCards)
+  // sceneReady = user has flipped everything in the current scene AND any
+  // magic/burst/magnet sequence triggered by that has finished playing.
+  const [sceneReady, setSceneReady] = useState(false)
+  const [isDone,     setIsDone]     = useState(false)
+
+  const [currentScene, setCurrentScene] = useState(null)
+  const [exitingScene, setExitingScene] = useState(null)
+
+  const advancingRef = useRef(false)
+  const historyRef = useRef([])
+
+  const advance = useCallback(() => {
+    if (isDone || advancingRef.current) return
+    // Only the very first auto-deal (sceneIdx === -1) is allowed to skip
+    // the "must be fully revealed" check — every scene after that requires
+    // the user to have flipped everything first.
+    if (sceneIdx >= 0 && !sceneReady) return
+
+    const nextIdx = sceneIdx + 1
+    if (nextIdx >= total) {
+      setIsDone(true)
+      return
+    }
+
+    advancingRef.current = true
+    const nextScene = script[nextIdx]
+    historyRef.current.push({ sceneIdx, scene: currentScene, deckCount })
+
+    setSceneReady(false)
+    setExitingScene(currentScene)
+    setCurrentScene(null)
+
+    setTimeout(() => {
+      const cardsInScene = countCardsInScene(nextScene)
+      setCurrentScene({ ...nextScene, renderKey: `scene-${nextIdx}-${Date.now()}` })
+      setSceneIdx(nextIdx)
+      setDeckCount(c => Math.max(0, c - cardsInScene))
+      advancingRef.current = false
+    }, 150)
+  }, [sceneIdx, sceneReady, currentScene, isDone, script, total, deckCount])
+
+  const goBack = useCallback(() => {
+    if (advancingRef.current || historyRef.current.length === 0) return
+    const prev = historyRef.current.pop()
+
+    advancingRef.current = true
+    setIsDone(false)
+    setSceneReady(false)
+    setExitingScene(currentScene)
+    setCurrentScene(null)
+
+    setTimeout(() => {
+      setCurrentScene(
+        prev.scene ? { ...prev.scene, renderKey: `scene-${prev.sceneIdx}-back-${Date.now()}` } : null
+      )
+      setSceneIdx(prev.sceneIdx)
+      setDeckCount(prev.deckCount)
+      // A scene we're returning to was already fully revealed before, so
+      // let the user move forward again right away if they choose.
+      setSceneReady(true)
+      advancingRef.current = false
+    }, 150)
+  }, [currentScene])
+
+  const onExitComplete = useCallback(() => setExitingScene(null), [])
+  const markSceneComplete = useCallback(() => setSceneReady(true), [])
+
+  return {
+    sceneIdx, currentScene, exitingScene, deckCount, totalCards,
+    canAdvance: sceneReady && sceneIdx < total - 1 && !isDone,
+    canGoBack: sceneIdx >= 0 && historyRef.current.length > 0,
+    isDone, total, advance, goBack, onExitComplete, markSceneComplete,
+  }
+}
+
+======================================================
+File: src/engine/animations.js
+======================================================
+import gsap from 'gsap'
+
+export const getDeckToStageOffset = (deckEl, stageEl) => {
+  if (!deckEl || !stageEl) return { x: 200, y: -200 }
+  const deckR  = deckEl.getBoundingClientRect()
+  const stageR = stageEl.getBoundingClientRect()
+  return {
+    x: (deckR.left + deckR.width  / 2) - (stageR.left + stageR.width  / 2),
+    y: (deckR.top  + deckR.height / 2) - (stageR.top  + stageR.height / 2),
+  }
+}
+
+export const animDeal = (el, fromPos, onComplete) => {
+  gsap.set(el, { x: fromPos.x, y: fromPos.y, rotation: 15, opacity: 0, scale: 0.8 })
+  return gsap.to(el, {
+    x: 0, y: 0, rotation: gsap.utils.random(-3, 3), opacity: 1, scale: 1,
+    duration: 0.5, ease: 'power2.out',
+    onComplete
+  })
+}
+
+// Container starts at rotationY:0 (back face towards viewer, per index.css:
+// .card-front-face has transform: rotateY(180deg), .card-back-face has none).
+// This animates 0 -> 180, revealing the front face.
+export const animFlipToFront = (innerEl, onComplete) => {
+  return gsap.to(innerEl, { rotationY: 180, duration: 0.5, ease: 'power2.inOut', onComplete })
+}
+
+export const animFlipToBack = (innerEl, onComplete) => {
+  return gsap.to(innerEl, { rotationY: 0, duration: 0.5, ease: 'power2.inOut', onComplete })
+}
+
+export const animExit = (el, onComplete) => {
+  return gsap.to(el, {
+    x: -300, y: 200, opacity: 0, scale: 0.7, rotation: -15,
+    duration: 0.4, ease: 'power2.in',
+    onComplete
+  })
+}
+
+export const animSplitBurst = (childEls, positions, onComplete) => {
+  childEls.forEach((el, i) => {
+    const pos = positions[i] || { x: 0, y: 0, rotation: 0 }
+    gsap.set(el, { x: 0, y: 0, rotation: 0, opacity: 0, scale: 0.8 })
+    gsap.to(el, {
+      x: pos.x, y: pos.y, rotation: pos.rotation, opacity: 1, scale: 1,
+      duration: 0.4, ease: 'power2.out', delay: i * 0.05
+    })
+  })
+  if(onComplete) setTimeout(onComplete, 450)
+}
+
+export const SPLIT_2_POSITIONS = [
+  { x: -140, y: 30, rotation: -14 },
+  { x:  140, y: 30, rotation:  14 },
+]
+
+export const SPLIT_3_POSITIONS = [
+  { x: -180, y: 30, rotation: -18 },
+  { x:    0, y: 48, rotation:   0 },
+  { x:  180, y: 30, rotation:  18 },
+]
+
+export const animPackBurst = (packEl, cards, onComplete) => {
+  gsap.set(packEl, { opacity: 0 })
+  const count = cards.length
+  const spreadDeg = Math.min(60, count * 12)
+  const startDeg  = -spreadDeg / 2
+
+  cards.forEach((card, i) => {
+    const frac  = count > 1 ? i / (count - 1) : 0
+    const angle = startDeg + frac * spreadDeg
+    const rad   = (angle * Math.PI) / 180
+    const dist  = 220
+    const x = Math.sin(rad) * dist
+    const y = 80 - Math.cos(rad) * 100 + Math.abs(Math.sin(rad)) * 40
+
+    gsap.set(card, { x: 0, y: 0, rotation: 0, opacity: 0, scale: 0.6 })
+    gsap.to(card, {
+      x, y, rotation: angle * 0.5, opacity: 1, scale: 1,
+      duration: 0.5, ease: 'power2.out', delay: i * 0.05
+    })
+  })
+  if(onComplete) setTimeout(onComplete, 500 + count * 50)
+}
+
+export const animMagnet = (card1El, card2El, heartEl, onComplete) => {
+  gsap.set(card1El, { x: -180, y: 0, opacity: 0 })
+  gsap.set(card2El, { x:  180, y: 0, opacity: 0 })
+  gsap.set(heartEl, { opacity: 0, scale: 0 })
+
+  const tl = gsap.timeline({ onComplete })
+  tl.to([card1El, card2El], { opacity: 1, duration: 0.2, ease: 'none' })
+    .to(card1El, { x: -20, duration: 0.4, ease: 'power2.in' }, 'slide')
+    .to(card2El, { x:  20, duration: 0.4, ease: 'power2.in' }, 'slide')
+    .to([card1El, card2El], { x: 0, opacity: 0, scale: 0.5, duration: 0.1 })
+    .to(heartEl, { opacity: 1, scale: 1.2, duration: 0.2, ease: 'power2.out' })
+    .to(heartEl, { scale: 1, duration: 0.2, ease: 'power2.inOut' })
+}
+
+// BUG FIX: this used to bounce 0 -> 90 -> 0. But by the time a card is
+// showing its word (ready for a "second flip" reveal), its inner element is
+// already resting at rotationY:180 (that's what "front face visible" means
+// in this project's CSS — see animFlipToFront above), NOT 0. Bouncing
+// toward 0 meant the reveal flip was animating toward the BACK face's
+// resting angle, not a clean front-to-front flip. Fixed to bounce around
+// the real front-facing angle (180), so the card visibly stays "facing you"
+// the whole time, just flashes edge-on for a beat while the face swaps.
+export function animSecondFlip(el, onMid, onDone) {
+  gsap.timeline()
+    .to(el, {
+      rotationY: 90,
+      duration: 0.22,
+      ease: 'power1.in',
+      onComplete: () => onMid?.(),
+    })
+    .to(el, {
+      rotationY: 180,
+      duration: 0.28,
+      ease: 'back.out(1.4)',
+      onComplete: () => onDone?.(),
+    })
+}
+
+======================================================
+File: src/engine/card-image.js
+======================================================
+/**
+ * card-image.js
+ * Maps card rank/suit to local images in public/playing-cards-assets
+ */
+
+const LOCAL_BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+const rankToFileName = (rank) => {
+  const map = { A: 'ace', J: 'jack', Q: 'queen', K: 'king' }
+  return map[rank] || rank.toLowerCase()
+}
+
+export const cardImageUrl = (rank, suit) => {
+  if (!rank || !suit || suit === 'heart-icon') return null
+  const rankName = rankToFileName(rank)
+  // Using the regular svg-cards folder since they are local and size doesn't matter for latency
+  return `${LOCAL_BASE}/svg-cards/${rankName}_of_${suit}.svg`
+}
+
+export const backCardUrl = () => `${LOCAL_BASE}/png/back@2x.png`
+
+export const hasMagicImage = (beat) => {
+  return !!(beat.transform_to && beat.transform_to.suit !== 'heart-icon')
+    || !!(beat.from_card)
+    || !!(beat.to_card)
+}
+
+export const suitSymbol = (suit) => {
+  const map = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' }
+  return map[suit] || ''
+}
+
+export const isRedSuit = (suit) => suit === 'hearts' || suit === 'diamonds'
+
+======================================================
+File: src/engine/sound-manager.js
+======================================================
+/**
+ * sound-manager.js
+ * Web Audio API synthesizer — zero external audio files needed.
+ * All sounds are procedurally generated at runtime.
+ */
+
+let ctx = null
+
+/** Initialize (or resume) the AudioContext. Must be called from a user gesture. */
+export const initAudio = async () => {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)()
+  }
+  if (ctx.state === 'suspended') {
+    await ctx.resume()
+  }
+  return ctx
+}
+
+const getCtx = () => ctx
+
+// ── Synthesis helpers ──────────────────────────────────────────
+
+/**
+ * Create a simple oscillator with envelope
+ */
+const osc = (type, freq, startT, dur, gainPeak = 0.3, pan = 0) => {
+  const c = getCtx(); if (!c) return
+  const o = c.createOscillator()
+  const g = c.createGain()
+  const p = c.createStereoPanner()
+  o.type = type
+  o.frequency.setValueAtTime(freq, startT)
+  g.gain.setValueAtTime(0, startT)
+  g.gain.linearRampToValueAtTime(gainPeak, startT + 0.01)
+  g.gain.exponentialRampToValueAtTime(0.001, startT + dur)
+  p.pan.value = pan
+  o.connect(g); g.connect(p); p.connect(c.destination)
+  o.start(startT); o.stop(startT + dur + 0.05)
+}
+
+/**
+ * White noise burst
+ */
+const noise = (startT, dur, gainPeak = 0.3, lowFreq = 100, highFreq = 6000) => {
+  const c = getCtx(); if (!c) return
+  const sr = c.sampleRate
+  const buf = c.createBuffer(1, Math.ceil(sr * dur), sr)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
+  const src = c.createBufferSource()
+  src.buffer = buf
+  const filt = c.createBiquadFilter()
+  filt.type = 'bandpass'
+  filt.frequency.value = (lowFreq + highFreq) / 2
+  filt.Q.value = 0.5
+  const g = c.createGain()
+  g.gain.setValueAtTime(gainPeak, startT)
+  g.gain.exponentialRampToValueAtTime(0.001, startT + dur)
+  src.connect(filt); filt.connect(g); g.connect(c.destination)
+  src.start(startT); src.stop(startT + dur + 0.05)
+}
+
+// ── Sound Definitions ──────────────────────────────────────────
+
+/** Card sliding from deck (deal) */
+const synthDeal = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  noise(t, 0.12, 0.35, 1500, 5000)
+  noise(t + 0.06, 0.08, 0.15, 3000, 8000)
+}
+
+/** Card flip — sharp tap */
+const synthFlip = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  osc('triangle', 900, t, 0.06, 0.25)
+  osc('sine',     400, t + 0.03, 0.07, 0.12)
+}
+
+/** Magic shimmer — ascending glass tones */
+const synthShimmer = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  const freqs = [1047, 1319, 1568, 2093, 2637, 3136]
+  freqs.forEach((f, i) => osc('sine', f, t + i * 0.065, 0.5, 0.1 - i * 0.01))
+}
+
+/** Crack — for number splits */
+const synthCrack = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  // Low thud
+  osc('sine', 70, t, 0.18, 0.55)
+  osc('sine', 100, t, 0.12, 0.3)
+  // Crack pop
+  noise(t + 0.05, 0.04, 0.9, 200, 12000)
+  noise(t + 0.09, 0.06, 0.5, 500, 8000)
+}
+
+/** Whoosh — pack opening */
+const synthWhoosh = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  noise(t, 0.4, 0.45, 300, 6000)
+  // Quick high sparkles
+  for (let i = 0; i < 6; i++) {
+    osc('sine', 2000 + Math.random() * 2000, t + i * 0.06, 0.1, 0.08)
+  }
+}
+
+/** Soft magnet click */
+const synthMagnet = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  osc('sine', 180, t, 0.12, 0.4)
+  osc('sine',  90, t + 0.04, 0.1, 0.3)
+  // Impact
+  noise(t, 0.03, 0.4, 100, 600)
+}
+
+/** Heartbeat — two low thuds */
+const synthHeartbeat = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  // Lub
+  osc('sine', 60, t,       0.18, 0.65)
+  osc('sine', 45, t + 0.02, 0.15, 0.5)
+  // Dub
+  osc('sine', 55, t + 0.32, 0.15, 0.55)
+  osc('sine', 40, t + 0.34, 0.12, 0.4)
+}
+
+/** Evolve — shimmer + bass power chord */
+const synthEvolve = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  // Bass swell
+  osc('sawtooth', 55,  t, 1.0, 0.3)
+  osc('sawtooth', 110, t, 1.0, 0.2)
+  osc('sawtooth', 165, t, 0.8, 0.12)
+  // Shimmer overlay (delayed)
+  const freqs = [1047, 1319, 1568, 2093]
+  freqs.forEach((f, i) => osc('sine', f, t + 0.1 + i * 0.07, 0.6, 0.09))
+}
+
+/** Final piano note (Ace of Hearts) */
+const synthPiano = () => {
+  const c = getCtx(); if (!c) return
+  const t = c.currentTime
+  // A4 piano approximation
+  osc('sine',     440,  t, 2.0, 0.28)
+  osc('triangle', 880,  t, 1.6, 0.10)
+  osc('sine',     1320, t, 1.0, 0.05)
+}
+
+// ── Public API ─────────────────────────────────────────────────
+
+const SOUNDS = {
+  deal:      synthDeal,
+  flip:      synthFlip,
+  shimmer:   synthShimmer,
+  crack:     synthCrack,
+  whoosh:    synthWhoosh,
+  magnet:    synthMagnet,
+  heartbeat: synthHeartbeat,
+  evolve:    synthEvolve,
+  piano:     synthPiano,
+}
+
+/**
+ * Play a named sound effect.
+ * Fails silently if audio not initialized or sound name unknown.
+ */
+export const play = (name) => {
+  try {
+    SOUNDS[name]?.()
+  } catch (e) {
+    // Audio is optional — never crash the app
+    console.warn('[SoundManager] Error:', name, e.message)
+  }
+}
+
+======================================================
+File: src/components/MagicTable.jsx
+======================================================
+import { useRef, useEffect, useCallback, useState } from 'react'
+import gsap from 'gsap'
+import { useMagicEngine } from '../engine/use-magic-engine.js'
+import { play } from '../engine/sound-manager.js'
+import {
+  animSplitBurst, animPackBurst, animMagnet,
+  SPLIT_2_POSITIONS, SPLIT_3_POSITIONS
+} from '../engine/animations.js'
+import { cardImageUrl, suitSymbol, isRedSuit } from '../engine/card-image.js'
+
+import Card from './Card.jsx'
+import BeatCounter from './BeatCounter.jsx'
+import script from '../data/script.json'
+
+function FooterCards({ lines, onDone }) {
+  const wordRefs = useRef([])
+
+  useEffect(() => {
+    const els = wordRefs.current.filter(Boolean)
+    if (!els.length) { onDone?.(); return }
+
+    gsap.set(els, { opacity: 0, y: 16, scale: 0.7 })
+    play('deal')
+    gsap.to(els, {
+      opacity: 1, y: 0, scale: 1,
+      duration: 0.32, ease: 'back.out(1.6)',
+      stagger: 0.05,
+      onComplete: () => setTimeout(() => onDone?.(), 700),
+    })
+  }, [lines, onDone])
+
+  let counter = -1
+  return (
+    <div className="footer-cards-lines">
+      {lines.map((line, li) => (
+        <div className="footer-line" key={li}>
+          {line.map((word) => {
+            counter++
+            const idx = counter
+            return (
+              <span
+                className="footer-word-card"
+                key={idx}
+                ref={el => (wordRefs.current[idx] = el)}
+              >
+                {word}
+              </span>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SplitOverlay({ scene, onDone }) {
+  const refs = useRef([])
+  const [burstDone, setBurstDone] = useState(false)
+  const cards = scene.into || []
+
+  useEffect(() => {
+    const els = refs.current.filter(Boolean)
+    if (!els.length) return
+    const t = setTimeout(() => {
+      play('crack')
+      const positions = cards.length === 2 ? SPLIT_2_POSITIONS : SPLIT_3_POSITIONS
+      animSplitBurst(els, positions, () => setBurstDone(true))
+    }, 500)
+    return () => clearTimeout(t)
+  }, [cards])
+
+  return (
+    <div className="scene-overlay">
+      <div className="split-cards-container">
+        {cards.map((c, i) => (
+          <div key={i} className="split-card-wrap" ref={el => (refs.current[i] = el)} style={{ opacity: 0 }}>
+            <div className="pack-card-inner" style={{ width: 'var(--card-w)', height: 'var(--card-h)', borderRadius: 'var(--card-r)' }}>
+              <img src={cardImageUrl(c.rank, c.suit)} alt="card" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => (e.target.style.display = 'none')} />
+            </div>
+          </div>
+        ))}
+      </div>
+      {burstDone && <FooterCards lines={scene.footer} onDone={onDone} />}
+    </div>
+  )
+}
+
+function PackOverlay({ scene, onDone }) {
+  const refs = useRef([])
+  const [burstDone, setBurstDone] = useState(false)
+  const cards = scene.burst || []
+
+  useEffect(() => {
+    const els = refs.current.filter(Boolean)
+    if (!els.length) return
+    const t = setTimeout(() => {
+      play('whoosh')
+      const dummy = document.createElement('div')
+      animPackBurst(dummy, els, () => setBurstDone(true))
+    }, 500)
+    return () => clearTimeout(t)
+  }, [cards])
+
+  return (
+    <div className="scene-overlay">
+      <div className="pack-cards-container">
+        {cards.map((c, i) => (
+          <div key={i} className="pack-card-wrap" ref={el => (refs.current[i] = el)} style={{ opacity: 0, position: 'absolute' }}>
+            <div className="pack-card-inner">
+              <span className={`pack-card-rank ${isRedSuit(c.suit) ? 'pack-card-red' : 'pack-card-black'}`}>{c.rank}</span>
+              <span className={`pack-card-suit ${isRedSuit(c.suit) ? 'pack-card-red' : 'pack-card-black'}`}>{suitSymbol(c.suit)}</span>
+              {c.label && <span className="pack-card-label">{c.label}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {burstDone && <FooterCards lines={scene.footer} onDone={onDone} />}
+    </div>
+  )
+}
+
+function MagnetOverlay({ scene, onDone }) {
+  const card1Ref = useRef(null)
+  const card2Ref = useRef(null)
+  const heartRef = useRef(null)
+
+  useEffect(() => {
+    const c1 = card1Ref.current, c2 = card2Ref.current, h = heartRef.current
+    if (!c1 || !c2 || !h) return
+    const t = setTimeout(() => {
+      play('magnet')
+      animMagnet(c1, c2, h, () => {
+        play('heartbeat')
+        setTimeout(() => onDone?.(), 1200)
+      })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const words = scene.cards || [{ text: 'You' }, { text: 'Me' }]
+
+  return (
+    <div className="scene-overlay">
+      <div className="magnet-container">
+        <div className="magnet-mini-card" ref={card1Ref}><span className="magnet-mini-word">{words[0].text}</span></div>
+        <div className="magnet-mini-card" ref={card2Ref}><span className="magnet-mini-word">{words[1].text}</span></div>
+        <div className="magnet-heart-result" ref={heartRef}>❤️</div>
+      </div>
+    </div>
+  )
+}
+
+export default function MagicTable() {
+  const deckRef = useRef(null)
+  const stageRef = useRef(null)
+
+  const engine = useMagicEngine(script)
+  const {
+    sceneIdx, currentScene, exitingScene,
+    deckCount, totalCards, canAdvance, canGoBack, isDone, total,
+    advance, goBack, onExitComplete, markSceneComplete,
+  } = engine
+
+  const revealedRef = useRef(0)
+  const [overlayTriggered, setOverlayTriggered] = useState(false)
+
+  useEffect(() => {
+    revealedRef.current = 0
+    setOverlayTriggered(false)
+  }, [currentScene?.renderKey])
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'ArrowLeft') goBack() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [goBack])
+
+  useEffect(() => {
+    if (sceneIdx === -1) {
+      const t = setTimeout(() => advance(), 500)
+      return () => clearTimeout(t)
+    }
+  }, [sceneIdx, advance])
+
+  const totalTriggerCards = (() => {
+    if (!currentScene) return 0
+    if (currentScene.type === 'scene') return currentScene.cards?.length ?? 0
+    if (currentScene.type === 'split' || currentScene.type === 'pack') return 1
+    if (currentScene.type === 'magnet') return currentScene.cards?.length ?? 2
+    return 0
+  })()
+
+  const handleCardRevealed = useCallback(() => {
+    revealedRef.current += 1
+    if (revealedRef.current < totalTriggerCards) return
+
+    if (currentScene?.type === 'scene') {
+      markSceneComplete() // plain scene: fully flipped = fully done
+    } else {
+      setOverlayTriggered(true) // split/pack/magnet: kick off the overlay
+    }
+  }, [currentScene, totalTriggerCards, markSceneComplete])
+
+  const renderSceneCards = (scene, isExiting) => {
+    if (!scene) return null
+    const isSpecial = ['split', 'pack', 'magnet'].includes(scene.type)
+
+    let cardsToRender = []
+    if (scene.type === 'scene' && scene.cards) cardsToRender = scene.cards
+    else if (scene.type === 'split' || scene.type === 'pack') cardsToRender = [scene.card]
+    else if (scene.type === 'magnet') cardsToRender = scene.cards || []
+
+    return (
+      <div className={`cards-layout ${isExiting ? 'exiting-layout' : ''}`} key={scene.renderKey || 'exit'}>
+        {(cardsToRender || []).map((cardData, idx) => (
+          <Card
+            key={idx}
+            cardData={cardData}
+            dealDelay={idx * 250}
+            deckRef={deckRef}
+            stageRef={stageRef}
+            shouldExit={isExiting}
+            onExitComplete={idx === 0 ? onExitComplete : null}
+            isSpecial={isSpecial}
+            onRevealed={isExiting ? undefined : handleCardRevealed}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="magic-table" role="main">
+      <div className="deck-pile" ref={deckRef}>
+        <div className="deck-visual">
+          <div className="deck-card" /><div className="deck-card" /><div className="deck-card" />
+        </div>
+        <div className="deck-count">{deckCount} / {totalCards}</div>
+      </div>
+
+      <BeatCounter current={sceneIdx} total={total} />
+
+      <div className="card-stage" ref={stageRef}>
+        {renderSceneCards(exitingScene, true)}
+        {renderSceneCards(currentScene, false)}
+
+        {overlayTriggered && currentScene?.type === 'split'  && <SplitOverlay  scene={currentScene} onDone={markSceneComplete} />}
+        {overlayTriggered && currentScene?.type === 'pack'   && <PackOverlay   scene={currentScene} onDone={markSceneComplete} />}
+        {overlayTriggered && currentScene?.type === 'magnet' && <MagnetOverlay scene={currentScene} onDone={markSceneComplete} />}
+      </div>
+
+      {!isDone && (
+        <p className="tap-hint tap-hint-facedown">
+          {canAdvance ? 'Tap next to continue' : 'Tap the card to flip it'}
+        </p>
+      )}
+
+      <div className="nav-area">
+        <button className="nav-btn nav-btn-back" disabled={!canGoBack} onClick={e => { e.stopPropagation(); goBack() }}>←</button>
+      </div>
+
+      {!isDone && (
+        <button
+          className={`nav-btn-next ${canAdvance ? 'is-ready' : 'is-locked'}`}
+          disabled={!canAdvance}
+          onClick={e => { e.stopPropagation(); advance() }}
+          aria-label="Next"
+        >→</button>
+      )}
+
+      {isDone && <p className="done-message">♥ The End ♥</p>}
+    </div>
+  )
+}
+
+======================================================
+File: src/components/Card.jsx
+======================================================
+import { useEffect, useRef, useState, useCallback } from 'react'
+import gsap from 'gsap'
+import {
+  animDeal, animFlipToFront, animSecondFlip, animExit,
+  getDeckToStageOffset,
+} from '../engine/animations.js'
+import { cardImageUrl, backCardUrl } from '../engine/card-image.js'
+import { play } from '../engine/sound-manager.js'
+
+const MAGIC_ICONS = {
+  'heart-icon': '❤️',
+  'infinity-icon': '∞',
+}
+
+export default function Card({
+  cardData, dealDelay = 0, deckRef, stageRef,
+  shouldExit, onExitComplete, isSpecial, onRevealed,
+}) {
+  const containerRef  = useRef(null)
+  const innerRef      = useRef(null)
+  const frontFaceRef  = useRef(null)
+  const isMounted      = useRef(true)
+  const hasFlippedRef  = useRef(false)
+  const hasReportedRef = useRef(false)
+
+  const [phase, setPhase] = useState('init')
+  const [magicReady, setMagicReady] = useState(false)
+  const [showFromCard, setShowFromCard] = useState(false)
+
+  useEffect(() => {
+    isMounted.current = true
+    return () => { isMounted.current = false }
+  }, [])
+
+  const reportRevealed = useCallback(() => {
+    if (hasReportedRef.current) return
+    hasReportedRef.current = true
+    onRevealed?.()
+  }, [onRevealed])
+
+  // Deal face-down. No auto-flip — the user flips it.
+  //
+  // IMPORTANT: from this effect onward, GSAP is the ONLY thing allowed to
+  // touch opacity/x/y/rotation/scale on `container`. Previously the JSX
+  // also set `style={{ opacity: ... }}` from React state, and the two
+  // fought each other on every re-render — that race is what could leave
+  // a card stuck fully transparent, or (worse) frozen at the deck's
+  // off-center coordinates. See failsafe fix below.
+  useEffect(() => {
+    const container = containerRef.current
+    const inner = innerRef.current
+    if (!container || !inner) return
+
+    gsap.set(container, { opacity: 0, x: 0, y: 0, rotation: 0, scale: 1 })
+    gsap.set(inner, { rotationY: 0 })
+    const fromPos = getDeckToStageOffset(deckRef?.current, stageRef?.current)
+
+    let dealt = false
+    const revealFacedown = () => {
+      if (dealt || !isMounted.current) return
+      dealt = true
+      // BUG FIX: this used to only do `gsap.set(container, { opacity: 1 })`.
+      // If animDeal's tween ever got interrupted before firing onComplete
+      // (slow device, throttled tab, GSAP tween killed by a re-render),
+      // the card would still be sitting at the DECK's x/y offset from the
+      // very first gsap.set() below — so it "appeared" but stuck in the
+      // corner, invisible against an empty center stage. Failsafe must
+      // reset the FULL transform, not just opacity.
+      gsap.set(container, { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1 })
+      setPhase('facedown')
+    }
+    const failsafeTimer = setTimeout(revealFacedown, dealDelay + 1500)
+
+    const delayTimer = setTimeout(() => {
+      if (!isMounted.current) return
+      setPhase('dealing')
+      play('deal')
+      animDeal(container, fromPos, () => {
+        if (!isMounted.current || dealt) return
+        dealt = true
+        setPhase('facedown')
+      })
+    }, dealDelay)
+
+    return () => { clearTimeout(delayTimer); clearTimeout(failsafeTimer) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tap the face-down card → user-triggered flip.
+  const handleFlip = useCallback((e) => {
+    e.stopPropagation()
+    if (phase !== 'facedown' || hasFlippedRef.current) return
+    hasFlippedRef.current = true
+
+    play('flip')
+    animFlipToFront(innerRef.current, () => {
+      if (isMounted.current) setPhase('word')
+    })
+  }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'word') return
+
+    if (isSpecial) {
+      reportRevealed()
+      const t = setTimeout(() => { if (isMounted.current) setPhase('hidden') }, 1200)
+      return () => clearTimeout(t)
+    }
+
+    const magic = cardData.magic
+    if (!magic) { reportRevealed(); return }
+
+    const delay = magic.delay || 2000
+    const t = setTimeout(() => {
+      if (!isMounted.current) return
+      if (magic.type === 'evolve') setPhase('evolve_reveal_from')
+      else if (magic.type === 'transform') setPhase('transform_reveal')
+    }, delay)
+    return () => clearTimeout(t)
+  }, [phase, cardData, isSpecial, reportRevealed])
+
+  useEffect(() => {
+    if (phase !== 'transform_reveal') return
+    play('shimmer')
+    animSecondFlip(
+      innerRef.current,
+      () => { setMagicReady(true); frontFaceRef.current?.classList.add('card-glow') },
+      () => { if (isMounted.current) setPhase('revealed') }
+    )
+  }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'evolve_reveal_from') return
+    play('shimmer')
+    animSecondFlip(
+      innerRef.current,
+      () => setShowFromCard(true),
+      () => { if (isMounted.current) setTimeout(() => setPhase('evolve_reveal_to'), 800) }
+    )
+  }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'evolve_reveal_to') return
+    play('evolve')
+    animSecondFlip(
+      innerRef.current,
+      () => { setShowFromCard(false); setMagicReady(true); frontFaceRef.current?.classList.add('card-glow') },
+      () => { if (isMounted.current) { play('shimmer'); setPhase('revealed') } }
+    )
+  }, [phase])
+
+  useEffect(() => {
+    if (phase === 'revealed') reportRevealed()
+  }, [phase, reportRevealed])
+
+  useEffect(() => {
+    if (!shouldExit || phase === 'exiting') return
+    setPhase('exiting')
+    animExit(containerRef.current, () => { if (isMounted.current) onExitComplete?.() })
+  }, [shouldExit, phase, onExitComplete])
+
+  const magic = cardData.magic
+  const icon = magic?.icon ? MAGIC_ICONS[magic.icon] : null
+  const cardImgSrc = (() => {
+    if (showFromCard && magic?.from) return cardImageUrl(magic.from.rank, magic.from.suit)
+    if (magicReady && magic?.to) return cardImageUrl(magic.to.rank, magic.to.suit)
+    if (magicReady && magic?.rank) return cardImageUrl(magic.rank, magic.suit)
+    return null
+  })()
+
+  const showWord = !magicReady && !showFromCard && phase !== 'hidden'
+  const isNumber = /^\d+$/.test(cardData?.text || '')
+  const isFlippable = phase === 'facedown'
+
+  return (
+    <div
+      className={`card-container ${isFlippable ? 'is-flippable' : ''}`}
+      ref={containerRef}
+      onClick={isFlippable ? handleFlip : undefined}
+      onTouchEnd={isFlippable ? handleFlip : undefined}
+      // NOTE: no `style={{ opacity }}` here anymore — GSAP fully owns
+      // opacity/x/y/rotation/scale on this element (see effect above).
+      // The starting opacity:0 now comes purely from `.card-container`'s
+      // base CSS (see index.css) so there's no React-vs-GSAP race.
+    >
+      <div className="card-inner" ref={innerRef}>
+        <div className="card-face card-back-face" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+          <img src={backCardUrl()} alt="back" onError={e => e.target.style.display = 'none'} />
+        </div>
+        <div className="card-face card-front-face" ref={frontFaceRef} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+          <div className={`word-content ${showWord ? 'visible' : 'hidden'}`}>
+            <div className="text-face">
+              <span className={`card-word ${isNumber ? 'number' : ''}`}>{cardData?.text || ''}</span>
+            </div>
+          </div>
+          {(magic || showFromCard) && (
+            <div className={`card-image-content ${(magicReady || showFromCard) ? 'visible' : 'hidden'}`}>
+              {icon ? <div className="heart-reveal">{icon}</div>
+                : cardImgSrc ? <img src={cardImgSrc} alt="card" className="card-img" onError={e => e.target.style.display = 'none'} />
+                : null}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+======================================================
+File: src/components/BeatCounter.jsx
+======================================================
+/**
+ * BeatCounter.jsx
+ * Shows current progress: "4 / 31"
+ */
+
+export default function BeatCounter({ current, total }) {
+  if (current < 0) return null
+  return (
+    <div className="beat-counter" aria-live="polite" aria-label={`Card ${current + 1} of ${total}`}>
+      <em>{current + 1}</em>
+      <span style={{ opacity: 0.4 }}>/</span>
+      <span>{total}</span>
+    </div>
+  )
+}
+
+======================================================
+File: src/components/IntroScreen.jsx
+======================================================
+/**
+ * IntroScreen.jsx
+ * Full-screen overlay. Tap anywhere to init AudioContext and start.
+ */
+
+export default function IntroScreen({ onStart }) {
+  return (
+    <div
+      className="intro-screen"
+      onClick={onStart}
+      onTouchEnd={(e) => { e.preventDefault(); onStart() }}
+      role="button"
+      aria-label="Tap to begin"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onStart()}
+    >
+      {/* Suit symbols */}
+      <div className="intro-suits" aria-hidden="true">
+        <span className="red">♥</span> ♠ <span className="red">♦</span> ♣
+      </div>
+
+      {/* Title */}
+      <h1 className="intro-title">52</h1>
+
+      <div className="intro-divider" aria-hidden="true" />
+
+      {/* CTA */}
+      <p className="intro-hint">Tap anywhere to begin</p>
+    </div>
+  )
+}
